@@ -11,8 +11,9 @@ from mappy import fastx_read
 
 
 class Fastq2Fasta(ConvBase):
-    """
-    Convert :term:`FASTQ` to :term:`FASTA`
+    """Convert :term:`FASTQ` to :term:`FASTA`
+
+    :attr:`available_methods`
     """
 
     input_ext = ['.fastq', '.fq']
@@ -148,3 +149,29 @@ class Fastq2Fasta(ConvBase):
         cmd = """sed -n '1~4s/^@/>/p;2~4p' """
         cmd = "{} {} > {}".format(cmd, self.infile, self.outfile)
         self.execute(cmd)
+
+    def _method_cython(self, *args, **kwargs):
+        from bioconvert.misc.cython_fastq2fasta import fastq2fasta
+        fastq2fasta(self.infile, self.outfile)
+
+    def _method_grouper(self, *args, **kwargs):
+        from itertools import zip_longest as izip_longest
+
+        def grouper(iterable):
+            args = [iter(iterable)] * 4
+            return izip_longest(*args)
+
+        with open(self.outfile, "w") as fasta, open(self.infile, "r") as fastq:
+            for name, seq, _, _ in grouper(fastq):
+                fasta.write(">{}{}".format(name[1:], seq))
+
+    def _method_C(self, *args, **kwargs):
+
+        from ctypes import c_char_p
+        from numpy.ctypeslib import load_library
+        lib = load_library("fastq2fasta", "/home/cokelaer/Work/github/bioconvert/bioconvert/misc")
+        lib.fastq2fasta(c_char_p(bytes(self.infile, "utf-8")), 
+                        c_char_p(bytes(self.outfile, "utf-8")))
+
+        #cmd = "/home/cokelaer/fastq2fasta {} > {}".format(self.infile, self.outfile)
+        #self.execute(cmd)
