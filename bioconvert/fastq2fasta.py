@@ -166,12 +166,14 @@ class Fastq2Fasta(ConvBase):
                 fasta.write(">{}{}".format(name[1:], seq))
 
     def _method_C(self, *args, **kwargs):
-
+        
         from ctypes import c_char_p
-        from numpy.ctypeslib import load_library
-        lib = load_library("fastq2fasta", "/home/cokelaer/Work/github/bioconvert/bioconvert/misc")
-        lib.fastq2fasta(c_char_p(bytes(self.infile, "utf-8")), 
+        try:
+            from numpy.ctypeslib import load_library
+            lib = load_library("fastq2fasta", "/home/cokelaer/Work/github/bioconvert/bioconvert/misc")
+            lib.fastq2fasta(c_char_p(bytes(self.infile, "utf-8")), 
                         c_char_p(bytes(self.outfile, "utf-8")))
-
+        except:
+            print("Could not load the C extension fastq2fasta or numpy missing")
         #cmd = "/home/cokelaer/fastq2fasta {} > {}".format(self.infile, self.outfile)
         #self.execute(cmd)
