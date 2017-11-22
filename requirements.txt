@@ -3,6 +3,7 @@ colorlog
 pandas
 biopython
 mappy
+cython
 matplotlib
 pyyaml
 pysam
