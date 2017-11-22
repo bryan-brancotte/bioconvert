@@ -1,12 +1,28 @@
 # -*- coding: utf-8 -*-
 import os
-from setuptools import setup, find_packages
+
+from setuptools import setup, find_packages, Extension
+from distutils.core import Extension
+
 
 _MAJOR = 0
 _MINOR = 0
 _MICRO = 6
 version = '%d.%d.%d' % (_MAJOR, _MINOR, _MICRO)
 release = '%d.%d' % (_MAJOR, _MINOR)
+
+try:
+    from Cython.Build import cythonize
+except ImportError:
+    print("-----------------------------------------------------------")
+    print("Bioconvert installation:: **cython** package not found")
+    print("-----------------------------------------------------------")
+    print("You can try to install it using **pip** as follows::")
+    print("")
+    print("    pip install cython")
+    print("")
+    exit()
+
 
 metainfo = {
     'authors': {
@@ -18,7 +34,7 @@ metainfo = {
     'url': ['http://pypi.python.org/pypi/bioconvert'],
     'description': 'convert between bioinformatics formats',
     'platforms': ['Linux', 'Unix', 'MacOsX', 'Windows'],
-    "keywords": ["NGS", "bam2bed", "fastq2fasta", "bam2sam"],
+    "keywords": ["NGS", "bam2bed", "fastq2fasta", "bam2sam", "vcf", "cram"],
     'classifiers': [
           'Development Status :: 1 - Planning',
           'Intended Audience :: Developers',
@@ -26,7 +42,6 @@ metainfo = {
           'License :: OSI Approved :: BSD License',
           'Operating System :: OS Independent',
           'Programming Language :: Python :: 3',
-          'Programming Language :: Python :: 3.4',
           'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',
           'Topic :: Software Development :: Libraries :: Python Modules',
@@ -48,6 +63,14 @@ if on_rtd:
     requirements += extra_packages
 
 
+# any C extension to compile
+modules = [
+     Extension("bioconvert.misc.fastq2fasta", ["bioconvert/misc/fastq2fasta.c"])]
+
+# all Cython files
+modules.extend(cythonize(["bioconvert/misc/cython_fastq2fasta.pyx"]))
+
+
 setup(
     name='bioconvert',
     version=version,
@@ -66,6 +89,7 @@ setup(
     zip_safe=False,
     packages=find_packages(),
     install_requires=requirements,
+    ext_modules = modules,
 
     # This is recursive include of data files
     exclude_package_data={"": ["__pycache__"]},
@@ -78,7 +102,7 @@ setup(
     entry_points={
         'console_scripts': [
            'bioconvert=bioconvert.scripts.converter:main',
-           'bioconvert_init=bioconvert.scripts.init_convert:main'
+           'bioconvert_init=bioconvert.scripts.init_convert:main',
         ]
     }
 
