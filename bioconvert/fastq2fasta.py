@@ -1,6 +1,6 @@
 from Bio import SeqIO
 from Bio.SeqIO import FastaIO
-from bioconvert import ConvBase
+from bioconvert import ConvBase, bioconvert_script
 # try:
 #     # Let us make this optional for now because
 #     # GATB cannot be install on RTD
@@ -8,6 +8,7 @@ from bioconvert import ConvBase
 # except:
 #     pass
 from mappy import fastx_read
+import mmap
 
 
 class Fastq2Fasta(ConvBase):
@@ -134,13 +135,11 @@ class Fastq2Fasta(ConvBase):
         self.execute(cmd)
 
     def _method_awk_v2(self, *args, **kwargs):
-
         awkcmd = """awk '{{print ">"substr($0,2);getline;print;getline;getline}}'"""
         cmd = "{} {} > {}".format(awkcmd, self.infile, self.outfile)
         self.execute(cmd)
 
     def _method_mawk_v2(self, *args, **kwargs):
-
         awkcmd = """mawk '{{print ">"substr($0,2);getline;print;getline;getline}}'"""
         cmd = "{} {} > {}".format(awkcmd, self.infile, self.outfile)
         self.execute(cmd)
@@ -166,7 +165,6 @@ class Fastq2Fasta(ConvBase):
                 fasta.write(">{}{}".format(name[1:], seq))
 
     def _method_C(self, *args, **kwargs):
-        
         from ctypes import c_char_p
         try:
             from numpy.ctypeslib import load_library
@@ -177,3 +175,37 @@ class Fastq2Fasta(ConvBase):
             print("Could not load the C extension fastq2fasta or numpy missing")
         #cmd = "/home/cokelaer/fastq2fasta {} > {}".format(self.infile, self.outfile)
         #self.execute(cmd)
+
+    def _method_sed_v2(self, *args, **kwargs):
+        cmd = """sed -n 's/^@/>/p;n;p;n;n'"""
+        cmd = "{} {} > {}".format(cmd, self.infile, self.outfile)
+        self.execute(cmd)
+
+    def _method_mawk_v3(self, *args, **kwargs):
+        awkcmd = """mawk '(++n<=0){next}(n!=1){print;n=-2;next}{print">"substr($0,2)}'"""
+        cmd = "{} {} > {}".format(awkcmd, self.infile, self.outfile)
+        self.execute(cmd)
+
+    def _method_perl(self, *args, **kwargs):
+        perlcmd = "perl {}".format(bioconvert_script("fastqToFasta.pl"))
+        cmd = "{} {} {}".format(perlcmd, self.infile, self.outfile)
+        self.execute(cmd)
+
+    def _method_python_internal(self, *args, **kwargs):
+        with open(self.infile, "r+") as inp:
+            with open(self.outfile, "wb") as out:
+                mapp = mmap.mmap(inp.fileno(), 0)
+                line = mapp.readline()
+                while line:
+                    out.write(b">")
+                    out.write(line[1:])
+                    out.write(mapp.readline())
+                    mapp.readline()
+                    mapp.readline()
+                    line = mapp.readline()
+                mapp.close()
+
+    def _method_python_external(self, *args, **kwargs):
+        pycmd = "python {}".format(bioconvert_script("fastqToFasta.py"))
+        cmd = "{} {} {}".format(pycmd, self.infile, self.outfile)
+        self.execute(cmd)

@@ -8,7 +8,7 @@ Core functions
 ---------------
 .. autosummary::
 
-    bioconvert.core.convbase
+    bioconvert.core.base
     bioconvert.core.registry
     bioconvert.core.benchmark
 
@@ -103,7 +103,7 @@ Core functions of Bioconvert
 -----------------------------
 
 
-.. automodule:: bioconvert.core.convbase
+.. automodule:: bioconvert.core.base
     :members:
     :synopsis:
 

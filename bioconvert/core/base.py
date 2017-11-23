@@ -111,7 +111,12 @@ class ConvMeta(abc.ABCMeta):
         if name != 'ConvBase':
             if '2' not in name:
                 raise TypeError("converter name must follow convention input2output")
-            input_fmt, output_fmt = name.upper().split('2', 1)
+            # for BZ2 2 GZ
+            if "22" in name:
+                input_fmt, output_fmt = name.upper().split('22', 1)
+                input_fmt += "2"
+            else:
+                input_fmt, output_fmt = name.upper().split('2', 1)
             input_ext = getattr(cls, 'input_ext')
             if check_ext(input_ext, 'input'):
                 output_ext = getattr(cls, 'output_ext')
@@ -304,13 +309,14 @@ class ConvBase(metaclass=ConvMeta):
             return output
 
     def boxplot_benchmark(self, N=5, rerun=True, include_dummy=False,
-            to_exclude=[]):
+            to_exclude=[], to_include=[]):
         """Simple wrapper to call :class:`Benchmark` and plot the results
 
         see :class:`~bioconvert.core.benchmark.Benchmark` for details.
 
         """
-        self._benchmark = Benchmark(self, N=N, to_exclude=to_exclude)
+        self._benchmark = Benchmark(self, N=N, to_exclude=to_exclude,
+                                    to_include=to_include)
         self._benchmark.include_dummy = include_dummy
         self._benchmark.plot(rerun=rerun)
 

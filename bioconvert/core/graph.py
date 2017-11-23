@@ -16,6 +16,7 @@ import os
 import json
 import glob
 from os.path import join, basename
+from os import environ
 
 
 def create_graph(filename, layout="dot", use_singularity=False):
@@ -54,9 +55,9 @@ strict digraph{
         nodes =  set([item for items in rr.get_conversions() for item in items])
 
         for node in nodes:
-            dot += "{};\n".format(node)
+            dot += "\"{}\";\n".format(node)
         for a, b in rr.get_conversions():
-            dot+="{} -> {};\n".format(a, b)
+            dot+="\"{}\" -> \"{}\";\n".format(a, b)
         dot += "}\n"
 
         from easydev import TempFile
@@ -67,27 +68,26 @@ strict digraph{
 
         dotpath = ""
         if use_singularity:
-            # download singularity
-            from bioconvert import configuration as config
-            from easydev import md5
-            singfile = "{}/graphviz.img".format(config.user_config_dir)
-
-            print(singfile)
-
-            if os.path.exists(singfile) and md5(singfile) == "4288088d91c848e5e3a327282a1ab3d1":
-                print("Found singularity (graphviz) image")
-            else:
-                print("Downloading singularity. Please wait")
-                cmd = "singularity pull {} shub://cokelaer/graphviz4all:v1"
-                cmd = cmd.format(singfile)
-                shell(cmd)
+            from bioconvert.core.downloader import download_singularity_image
+            singfile = download_singularity_image(
+                "graphviz.simg",
+                "shub://cokelaer/graphviz4all:v1",
+                "4288088d91c848e5e3a327282a1ab3d1")
 
             dotpath = "singularity run {} ".format(singfile)
+            on_rtd = environ.get('READTHEDOCS', None) == 'True'
+            if on_rtd:
+                dotpath = ""
+
 
         ext = filename.rsplit(".", 1)[1]
         cmd = "{}dot -T{} {} -o {}".format(dotpath, ext, dotfile.name, filename)
-        shell(cmd)
-        dotfile.delete()
+        try:
+            shell(cmd)
+        except:
+            import os
+            os.system(cmd)
+        #dotfile.delete()
 
 
 

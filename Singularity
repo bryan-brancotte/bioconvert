@@ -10,7 +10,7 @@ From: ubuntu:17.04
 %labels
   maintainer Bertrand Neron <bneron@pasteur.fr>
   package.name
-  package.version 0.0.6
+  package.version 0.0.7
   package.homepage https://pypi.python.org/pypi/bioconvert/0.0.6
   package.source.url
   package.source.mdm5
@@ -39,6 +39,7 @@ From: ubuntu:17.04
 
   apt-get update -y
   apt-get install -y wget bzip2
+  apt-get install -y libgl1-mesa-glx
 
   # install anaconda
   if [ ! -d /usr/local/anaconda ]; then
@@ -64,10 +65,12 @@ From: ubuntu:17.04
   # The main packages for sequana:
   conda install --file https://raw.githubusercontent.com/biokit/bioconvert/master/requirements.txt
   conda install --file https://raw.githubusercontent.com/biokit/bioconvert/master/requirements_tools.txt
+  #conda install -y graphviz==2.38 pygraphviz
 
+  
 
   ######### install bioconvert #########
-  pip install bioconvert==0.0.6
+  pip install bioconvert==0.0.7
 
   # add this directory for Institut Pasteur cluster usage
   if [ ! -d /pasteur ]; then mkdir /pasteur; fi
