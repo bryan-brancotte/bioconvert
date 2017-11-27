@@ -40,6 +40,7 @@ install:
 
   - conda install --yes python=$TRAVIS_PYTHON_VERSION  coverage
   - pip install .
+  - python setup.py install # to build extensions (cython + C)
 
   # install squizz which is a dependency but which is not packaged in conda
   -
