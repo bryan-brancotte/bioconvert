@@ -171,8 +171,9 @@ class Fastq2Fasta(ConvBase):
             lib = load_library("fastq2fasta", "/home/cokelaer/Work/github/bioconvert/bioconvert/misc")
             lib.fastq2fasta(c_char_p(bytes(self.infile, "utf-8")), 
                         c_char_p(bytes(self.outfile, "utf-8")))
-        except:
+        except Exception as err:
             print("Could not load the C extension fastq2fasta or numpy missing")
+            print(err)
         #cmd = "/home/cokelaer/fastq2fasta {} > {}".format(self.infile, self.outfile)
         #self.execute(cmd)
 
